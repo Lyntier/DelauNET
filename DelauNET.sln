@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelauNET", "DelauNET\DelauNET.csproj", "{40B868E8-0E87-45C3-A228-8F56C1506FCE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelauNET.Tests", "DelauNET.Tests\DelauNET.Tests.csproj", "{A30FC33A-469C-44D0-B5A4-94DE9934274A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{40B868E8-0E87-45C3-A228-8F56C1506FCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40B868E8-0E87-45C3-A228-8F56C1506FCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40B868E8-0E87-45C3-A228-8F56C1506FCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40B868E8-0E87-45C3-A228-8F56C1506FCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A30FC33A-469C-44D0-B5A4-94DE9934274A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A30FC33A-469C-44D0-B5A4-94DE9934274A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A30FC33A-469C-44D0-B5A4-94DE9934274A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A30FC33A-469C-44D0-B5A4-94DE9934274A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

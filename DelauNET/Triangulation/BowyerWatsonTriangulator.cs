@@ -76,9 +76,10 @@ namespace DelauNET.Triangulation
                 foreach (var triangle in _triangles)
                 {
                     if (triangle.HasVertex(vertex)) continue;
-                    if(vertex.InRadius(triangle.Circumcircle)) throw new ArgumentException("Wtf!");
+                    if (vertex.InRadius(triangle.Circumcircle)) throw new ArgumentException("Wtf!");
                 }
             }
+
             // Should only have good triangles left
             return _triangles;
         }

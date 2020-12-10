@@ -2,9 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelauNET", "DelauNET\DelauNET.csproj", "{40B868E8-0E87-45C3-A228-8F56C1506FCE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelauNET.Tests", "DelauNET.Tests\DelauNET.Tests.csproj", "{A30FC33A-469C-44D0-B5A4-94DE9934274A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelauNET.Tests", "DelauNET.Tests\DelauNET.Tests.csproj", "{7CC3EF3B-71D8-4DFF-9FD5-30CE354947C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelauNET.Unity", "DelauNET.Unity\DelauNET.Unity.csproj", "{2D3496E2-D915-4F65-AC6C-7D322FAB352D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelauNET.Unity", "DelauNET.Unity\DelauNET.Unity.csproj", "{307E5F16-0683-4C78-85F3-DA8455CCCA96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,13 +16,13 @@ Global
 		{40B868E8-0E87-45C3-A228-8F56C1506FCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40B868E8-0E87-45C3-A228-8F56C1506FCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40B868E8-0E87-45C3-A228-8F56C1506FCE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A30FC33A-469C-44D0-B5A4-94DE9934274A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A30FC33A-469C-44D0-B5A4-94DE9934274A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A30FC33A-469C-44D0-B5A4-94DE9934274A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A30FC33A-469C-44D0-B5A4-94DE9934274A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2D3496E2-D915-4F65-AC6C-7D322FAB352D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2D3496E2-D915-4F65-AC6C-7D322FAB352D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2D3496E2-D915-4F65-AC6C-7D322FAB352D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2D3496E2-D915-4F65-AC6C-7D322FAB352D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CC3EF3B-71D8-4DFF-9FD5-30CE354947C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CC3EF3B-71D8-4DFF-9FD5-30CE354947C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CC3EF3B-71D8-4DFF-9FD5-30CE354947C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CC3EF3B-71D8-4DFF-9FD5-30CE354947C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{307E5F16-0683-4C78-85F3-DA8455CCCA96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{307E5F16-0683-4C78-85F3-DA8455CCCA96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{307E5F16-0683-4C78-85F3-DA8455CCCA96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{307E5F16-0683-4C78-85F3-DA8455CCCA96}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

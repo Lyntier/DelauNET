@@ -33,6 +33,11 @@ namespace DelauNET.Model
             return new Vertex(lhs.X - rhs.X, lhs.Y - rhs.Y);
         }
 
+        public static Vertex operator /(Vertex lhs, float rhs)
+        {
+            return new Vertex(lhs.X / rhs, lhs.Y / rhs);
+        }
+
         public int CompareTo(Vertex other)
         {
             var xComparison = X.CompareTo(other.X);

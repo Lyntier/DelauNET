@@ -1,119 +1,160 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Mail;
 using DelauNET.Model;
 
 namespace DelauNET.Triangulation
 {
     public class BowyerWatsonTriangulator : ITriangulator
     {
+        public Vertex[] Vertices => _vertices.ToArray();
+        private Vertex[] _vertices;
+
+        public Triangle[] Triangles => _triangles.ToArray();
         private List<Triangle> _triangles;
-        public IList<Triangle> Triangles => _triangles;
 
-        public IEnumerable<Triangle> Triangulate(List<Vertex> points)
+        /// <summary>
+        /// Tolerance for equality check of vertices.
+        /// </summary>
+        private float _tolerance;
+
+        /// <summary>
+        /// A triangle that contains all the points that need to be
+        /// triangulated, required by the Bowyer-Watson algorithm.
+        /// </summary>
+        private Triangle _supertriangle;
+
+        /// <summary>
+        /// Whether or not the triangulator is initialized.
+        /// </summary>
+        private bool initialized = false;
+
+        /// <summary> The index of the vertex that is currently being added to the Delaunay triangulation. </summary>
+        private int vertexIndex = 0;
+
+        public bool Initialize(ICollection<Vertex> vertices, float tolerance = 0.0001f)
         {
-            var sorted = points
-                .OrderBy(vert => vert.X)
-                .ThenBy(vert => vert.X)
+            if (vertices.Count < 3)
+            {
+                Console.Error.WriteLine("Less than 3 vertices given, cannot construct Delaunay from points.");
+                return initialized = false;
+            }
+
+            if (tolerance < float.Epsilon)
+            {
+                Console.Error.WriteLine(
+                    $"Could not initialize triangulator with the given fault margin: {tolerance}\n" +
+                    "Required at least Single.Epsilon (smallest positive non-zero value)");
+                return initialized = false;
+            }
+
+            if (vertices.Count != vertices.Distinct().Count())
+            {
+                Console.WriteLine("NOTE: Duplicate vertices in list. Only using unique values.");
+            }
+
+            _vertices = vertices
                 .Distinct()
-                .ToList();
+                .OrderBy(vertex => vertex.X)
+                .ThenBy(vertex => vertex.Y)
+                .ToArray();
 
-            if (points.Count != sorted.Count)
-            {
-                Console.WriteLine("NOTE: Duplicate vertices in triangulation; duplicates are discarded.");
-            }
+            vertexIndex = -1;
 
-            Triangle superTriangle = CreateSuperTriangle(sorted);
+            _triangles = new List<Triangle>(1);
 
-            _triangles = new List<Triangle> {superTriangle};
-            var badTriangles = new HashSet<Triangle>();
+            _tolerance = tolerance;
 
+            _supertriangle = Triangle.GetSupertriangle(_vertices);
+            _triangles.Add(_supertriangle);
 
-            for (var i = 0; i < sorted.Count; i++)
-            {
-                var vertex = sorted[i];
-
-                foreach (var triangle in _triangles)
-                {
-                    // Skip triangle if vertex is part of it.
-                    if (triangle.HasVertex(vertex)) continue;
-
-                    // Skip triangles that are already marked bad.
-                    if (badTriangles.Contains(triangle)) continue;
-
-                    // Skip triangle if vertex isn't in its circumcircle.
-                    if (!vertex.InRadius(triangle.Circumcircle)) continue;
-
-                    // Make new triangles with this vertex from triangle's edges
-                    _triangles.Add(new Triangle(triangle.A, triangle.B, vertex));
-                    _triangles.Add(new Triangle(vertex, triangle.B, triangle.C));
-                    _triangles.Add(new Triangle(triangle.A, vertex, triangle.C));
-
-                    // Mark this triangle as bad, because the current vertex was in its circumcircle.
-                    badTriangles.Add(triangle);
-
-                    // Need to check all vertices again if a bad triangle is found.
-                    i = -1; // End of loop would set i to 1 if i is set to 0 here.
-
-                    // Don't continue with other triangles; enumeration is modified.
-                    break;
-                }
-            }
-
-            _triangles.RemoveAll(triangle => badTriangles.Contains(triangle)
-                                             || triangle.HasVertex(superTriangle.A)
-                                             || triangle.HasVertex(superTriangle.B)
-                                             || triangle.HasVertex(superTriangle.C)
-            );
-
-            _triangles = _triangles.Distinct().ToList();
-
-            Console.WriteLine("GOOD TRIANGLES: ");
-            foreach (var triangle in _triangles) Console.WriteLine(triangle.ToString());
-
-            foreach (var vertex in points)
-            {
-                foreach (var triangle in _triangles)
-                {
-                    if (triangle.HasVertex(vertex)) continue;
-                    if (vertex.InRadius(triangle.Circumcircle)) throw new ArgumentException("Wtf!");
-                }
-            }
-
-            // Should only have good triangles left
-            return _triangles;
+            return initialized = true;
         }
 
-        public static Triangle CreateSuperTriangle(IEnumerable<Vertex> points)
+        public void ProcessAll()
         {
-            points = points.ToList();
-            IEnumerable<float> x = points.Select(vertex => vertex.X).ToList();
-            IEnumerable<float> y = points.Select(vertex => vertex.Y).ToList();
+            if (!initialized)
+                throw new InvalidOperationException(
+                    "Triangulator was not properly initialized, or completed a previous triangulation.\n" +
+                    "If you need to initialize the triangulator first, use 'Initialize()'.");
 
+            while (!ProcessNext())
+            {
+            }
+        }
 
-            float xMin = x.Min();
-            float xMax = x.Max();
+        /// <summary>
+        /// Processes the next vertex in the list of vertices and adds it to the Delaunay triangulation.
+        /// </summary>
+        /// <returns>true if done, false if there's more points to triangulate.</returns>
+        public bool ProcessNext()
+        {
+            if (!initialized)
+                throw new InvalidOperationException(
+                    "Triangulator was not properly initialized, or completed a previous triangulation.\n" +
+                    "If you need to initialize the triangulator first, use 'Initialize()'.");
+            vertexIndex++;
+            Vertex vertex = _vertices[vertexIndex];
 
-            float yMin = y.Min();
-            float yMax = y.Max();
+            HashSet<Triangle> badTriangles = new HashSet<Triangle>();
 
-            float xDiff = xMax - xMin;
-            float yDiff = yMax - yMin;
+            // Find triangles that are invalid due to point insertion
+            foreach (var triangle in _triangles)
+            {
+                if (vertex.InRadius(triangle.Circumcircle)) badTriangles.Add(triangle);
+            }
 
-            // Offsetting X to ensure super triangle contains all points.
-            float triLeft = xMin - 2 * xDiff;
-            float triRight = xMax + 2 * xDiff;
+            HashSet<Edge> polygon = new HashSet<Edge>();
 
-            float triDown = yMin - yDiff;
-            float triUp = yMax + yDiff;
+            // Find boundary of polygonal hole
+            foreach (var triangle in badTriangles)
+            {
+                foreach (var edge in new[] {triangle.AB, triangle.BC, triangle.CA})
+                {
+                    // Add edge to polygon outline if not shared by any other bad triangles
+                    var badsNotThis = badTriangles.Where(self => triangle != self);
+                    
+                    if (!badsNotThis.Any(badTriangle => badTriangle.HasEdge(edge)))
+                    {
+                        polygon.Add(edge);
+                    }
+                }
+            }
 
-            float triMid = xMax - xDiff / 2f;
+            // Remove bad triangles from triangulation
+            foreach (var triangle in badTriangles)
+            {
+                _triangles.Remove(triangle);
+            }
 
-            Vertex left = new Vertex(triLeft, triDown);
-            Vertex up = new Vertex(triMid, triUp);
-            Vertex right = new Vertex(triRight, triDown);
+            // Retriangulate polygon hole with vertex
+            foreach (var edge in polygon)
+            {
+                _triangles.Add(new Triangle(edge, vertex));
+            }
 
-            return new Triangle(left, up, right, true);
+            if (vertexIndex != _vertices.Length - 1) return false;
+
+            Finish();
+            initialized = false;
+            return true;
+        }
+
+        public void Finish()
+        {
+            // Finally remove super triangle verts
+            // Copy triangles array to prevent collection modification during for-loop.
+            foreach (var triangle in _triangles.ToArray())
+            {
+                if (triangle.HasVertex(_supertriangle.A)
+                    || triangle.HasVertex(_supertriangle.B)
+                    || triangle.HasVertex(_supertriangle.C))
+                {
+                    _triangles.Remove(triangle);
+                }
+            }
         }
     }
 }

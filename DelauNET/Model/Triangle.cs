@@ -7,12 +7,16 @@ namespace DelauNET.Model
 {
     public struct Triangle : IComparable<Triangle>, IEquatable<Triangle>
     {
-
         public readonly Vertex A, B, C;
         public readonly Edge AB, BC, CA;
+        public readonly Circle Circumcircle;
 
         public bool SuperTri;
 
+        public Triangle(Edge edge, Vertex vertex, bool superTriangle = false) : this(edge.P1, edge.P2, vertex, superTriangle)
+        {
+        }
+        
         public Triangle(Vertex a, Vertex b, Vertex c, bool superTriangle = false)
         {
             if (a == b || b == c || a == c) throw new ArgumentException("Can't create a triangle from equal points");
@@ -25,60 +29,35 @@ namespace DelauNET.Model
             BC = new Edge(B, C);
             CA = new Edge(C, A);
 
+            Circumcircle = GetCircumcircle(AB, BC);
+
+
             SuperTri = superTriangle;
         }
 
+        // Checks if the given vertex is part of this triangle.
         public bool HasVertex(Vertex vertex) => A == vertex || B == vertex || C == vertex;
 
-        public Vertex Circumcenter => GetCircumcenter(this);
+        public bool HasEdge(Edge edge) => AB == edge || BC == edge || CA == edge;
 
-        public static Vertex GetCircumcenter(Triangle triangle)
+
+        private static Vertex GetIntersection(Edge ab, Edge bc)
         {
             // Circumcenter of a triangle is the intersection of perpendicular bisectors.
             // This is the point at which you can draw a circle going through all three
             // points of the triangle.
 
             // First we get the bisectors (Helper method in Edge class)
-            var edge1 = triangle.AB.Bisector;
-            var edge2 = triangle.BC.Bisector;
+            var edge1 = ab.Bisector;
+            var edge2 = bc.Bisector;
 
-            // P1 stores their starting position, and P2 their direction.
-            // We use these to convert the bisectors into line segments.
-            var s1 = edge1.P1;
-            var e1 = edge1.P1 + edge1.P2;
-
-            var s2 = edge2.P1;
-            var e2 = edge2.P1 + edge2.P2;
-
-            // You can calculate the intersection of lines when you have the lines as
-            // formulas ( ax + by = c ), where:
-            float a1 = e1.Y - s1.Y;
-            float b1 = s1.X - e1.X;
-            float c1 = a1 * s1.X + b1 * s1.Y;
-
-            float a2 = e2.Y - s2.Y;
-            float b2 = s2.X - e2.X;
-            float c2 = a2 * s2.X + b2 * s2.Y;
-
-            // Difference between points.
-            float delta = a1 * b2 - a2 * b1;
-
-            // If that difference is 0, they'll never meet.
-            if (Math.Abs(delta) < float.Epsilon) throw new ArgumentException("Parallel!");
-
-            // Calculate the point where the two lines would meet.
-            float x = (b2 * c1 - b1 * c2) / delta;
-            float y = (a1 * c2 - a2 * c1) / delta;
-
-            return new Vertex(x, y);
+            return Edge.GetIntersection(edge1, edge2);
         }
 
-        public Circle Circumcircle => GetCircumcircle(this);
-
-        static Circle GetCircumcircle(Triangle triangle)
+        private static Circle GetCircumcircle(Edge ab, Edge bc)
         {
-            Vertex circumcenter = triangle.Circumcenter;
-            return new Circle(circumcenter, circumcenter.DistanceTo(triangle.A));
+            Vertex circumcenter = GetIntersection(ab, bc);
+            return new Circle(circumcenter, circumcenter.DistanceTo(ab.P1));
         }
 
         public override string ToString()
@@ -93,6 +72,28 @@ namespace DelauNET.Model
             return sb.ToString();
         }
 
+        public static Triangle GetSupertriangle(in IList<Vertex> vertices)
+        {
+            IList<float> y = vertices.Select(vertex => vertex.Y).OrderBy(self => self).ToList();
+
+            // Vertices are already sorted by X, so no need to find smallest/largest X.
+            Vertex min = new Vertex(vertices[0].X, y[0]);
+            Vertex max = new Vertex(vertices[vertices.Count - 1].X, y[y.Count - 1]);
+
+            var d = max - min;
+            var dMax = d.X > d.Y ? d.X : d.Y;
+
+            Vertex mid = (max + min) / 2f;
+
+            Vertex left = new Vertex(mid.X - 2 * dMax, mid.Y - 2 * dMax);
+            Vertex top = new Vertex(mid.X, mid.Y + 2 * dMax);
+            Vertex right = new Vertex(mid.X + 2 * dMax, mid.Y - 2 * dMax);
+
+            return new Triangle(left, top, right, true);
+        }
+
+
+        #region Equality checks
 
         public int CompareTo(Triangle other)
         {
@@ -130,14 +131,14 @@ namespace DelauNET.Model
 
         public static bool operator ==(Triangle lhs, Triangle rhs)
         {
-            return lhs.Equals(rhs);
+            return lhs.CompareTo(rhs) == 0;
         }
 
         public static bool operator !=(Triangle lhs, Triangle rhs)
         {
             return !(lhs == rhs);
         }
-        
+
         public override int GetHashCode()
         {
             SortedSet<Vertex> vertices = new SortedSet<Vertex> {A, B, C};
@@ -149,5 +150,7 @@ namespace DelauNET.Model
                 return hashCode;
             }
         }
+
+        #endregion
     }
 }
